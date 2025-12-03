@@ -320,9 +320,43 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api
    - Optimized builds and performance
    - Better SEO capabilities
 
-## 🧪 Testing the Application
+## 🧪 Testing
 
-### Sample Workflow
+### Running Unit Tests
+
+The project includes comprehensive unit tests for both backend and frontend.
+
+#### Backend Tests
+
+```bash
+cd backend
+npm test                # Run all tests
+npm run test:watch      # Watch mode
+npm run test:coverage   # Coverage report
+```
+
+**Test Coverage:**
+- Model tests (Developer, Task, Skill)
+- Service tests (LLM skill detection with mocking)
+- Route tests (API endpoints)
+- 25 tests covering models, services, and routes
+
+#### Frontend Tests
+
+```bash
+cd frontend
+npm test                # Run all tests
+npm run test:watch      # Watch mode
+npm run test:coverage   # Coverage report
+```
+
+**Test Coverage:**
+- Type definition tests
+- API client mocking tests
+- Component rendering tests
+- 11 tests covering types, API interactions, and components
+
+### Manual Testing Workflow
 
 1. **View Existing Tasks**
    - Navigate to http://localhost:3000
