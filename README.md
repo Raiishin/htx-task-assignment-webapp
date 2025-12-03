@@ -1,5 +1,9 @@
 # Task Assignment System
 
+![Tests](https://github.com/YOUR_USERNAME/htx-task-assignment/actions/workflows/test.yml/badge.svg)
+![Build](https://github.com/YOUR_USERNAME/htx-task-assignment/actions/workflows/build.yml/badge.svg)
+![Lint](https://github.com/YOUR_USERNAME/htx-task-assignment/actions/workflows/lint.yml/badge.svg)
+
 A full-stack web application for managing task assignments with skill-based matching, subtask support, and AI-powered skill detection.
 
 ## 🎯 Features
@@ -319,6 +323,57 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api
    - Built-in routing without external libraries
    - Optimized builds and performance
    - Better SEO capabilities
+
+## 🔄 CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration and deployment. Automated workflows run on every push to `main` and on all pull requests.
+
+### Workflows
+
+**Test Workflow** (`.github/workflows/test.yml`)
+- Runs on: Push to main, Pull Requests
+- Jobs:
+  - **Backend Tests**: Runs all 25 backend tests with PostgreSQL service
+  - **Frontend Tests**: Runs all 11 frontend tests
+  - **Test Summary**: Aggregates results and fails if any tests fail
+- Uploads test coverage reports as artifacts
+
+**Build Workflow** (`.github/workflows/build.yml`)
+- Runs on: Push to main, Pull Requests
+- Jobs:
+  - **Backend Build**: Compiles TypeScript and verifies dist artifacts
+  - **Frontend Build**: Builds Next.js production bundle
+  - **Docker Build**: Builds Docker images for both services with caching
+
+**Lint Workflow** (`.github/workflows/lint.yml`)
+- Runs on: Push to main, Pull Requests
+- Jobs:
+  - **Backend Lint**: TypeScript compiler checks
+  - **Frontend Lint**: Next.js linter + TypeScript checks
+
+### Viewing CI/CD Results
+
+1. Navigate to the **Actions** tab in your GitHub repository
+2. View workflow runs for each push/PR
+3. Download coverage reports from artifacts
+4. Check badges in README for quick status
+
+### Local Validation Before Push
+
+Run these commands locally to ensure CI will pass:
+
+```bash
+# Backend
+cd backend
+npm test
+npx tsc --noEmit
+
+# Frontend
+cd frontend
+npm test
+npm run lint
+npx tsc --noEmit
+```
 
 ## 🧪 Testing
 

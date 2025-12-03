@@ -198,7 +198,6 @@ If this were a production system, I would add:
 - Advanced filtering and search
 - Task priority and deadlines
 - Audit logs
-- CI/CD pipeline
 
 ### Time Investment
 
