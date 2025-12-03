@@ -52,3 +52,22 @@ export interface UpdateTaskData {
   status?: TaskStatus;
   developerId?: number | null;
 }
+
+export interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  pageSize: number;
+}
+
+export interface PaginatedTasksResponse {
+  tasks: Task[];
+  pagination: PaginationMeta;
+}
+
+export interface TaskFilters {
+  status?: TaskStatus;
+  developerId?: number;
+  skillIds?: number[];
+  search?: string;
+}

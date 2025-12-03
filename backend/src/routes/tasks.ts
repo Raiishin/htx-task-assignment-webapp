@@ -1,8 +1,10 @@
 import express from 'express';
 import { z } from 'zod';
+import { Op, QueryTypes } from 'sequelize';
 import { Task, Developer, Skill, TaskSkill, DeveloperSkill } from '../models';
 import { TaskStatus } from '../models/Task';
 import { detectSkillsFromTitle } from '../services/llm';
+import sequelize from '../config/database';
 
 const router = express.Router();
 
@@ -98,11 +100,64 @@ async function loadTaskWithSubtasks(task: Task): Promise<any> {
   };
 }
 
-// GET /api/tasks - Get all tasks
+// GET /api/tasks - Get all tasks with pagination and filtering
 router.get('/', async (req, res, next) => {
   try {
+    // Parse query parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+    const status = req.query.status as TaskStatus | undefined;
+    const developerId = req.query.developerId ? parseInt(req.query.developerId as string) : undefined;
+    const skillIdsParam = req.query['skillIds[]'] || req.query.skillIds;
+    const skillIds = skillIdsParam
+      ? (Array.isArray(skillIdsParam)
+          ? skillIdsParam.map(id => parseInt(id as string))
+          : [parseInt(skillIdsParam as string)])
+      : undefined;
+    const search = req.query.search as string | undefined;
+
+    // Build dynamic WHERE clause
+    const where: any = { parentTaskId: null };
+    if (status) where.status = status;
+    if (developerId) where.developerId = developerId;
+    if (search) where.title = { [Op.iLike]: `%${search}%` };
+
+    // Handle skill filtering with AND logic using subquery
+    if (skillIds?.length) {
+      // Add subquery to filter tasks that have ALL of the specified skills
+      // Use GROUP BY and HAVING COUNT to ensure all skills are present
+      const taskIdsWithSkills = await sequelize.query(
+        `SELECT "taskId"
+         FROM task_skills
+         WHERE "skillId" IN (:skillIds)
+         GROUP BY "taskId"
+         HAVING COUNT(DISTINCT "skillId") = :skillCount`,
+        {
+          replacements: { skillIds, skillCount: skillIds.length },
+          type: QueryTypes.SELECT
+        }
+      ) as any[];
+
+      const taskIds = taskIdsWithSkills.map((row: any) => row.taskId);
+
+      if (taskIds.length > 0) {
+        where.id = { [Op.in]: taskIds };
+      } else {
+        // No tasks match the skill filter
+        where.id = -1; // Impossible ID to return no results
+      }
+    }
+
+    // Count total matching records
+    const totalCount = await Task.count({
+      where,
+      distinct: true
+    });
+
+    // Apply pagination
+    const offset = (page - 1) * limit;
     const tasks = await Task.findAll({
-      where: { parentTaskId: null }, // Only root tasks
+      where,
       include: [
         { model: Skill, as: 'skills' },
         {
@@ -112,13 +167,25 @@ router.get('/', async (req, res, next) => {
         },
       ],
       order: [['createdAt', 'DESC']],
+      limit,
+      offset
     });
 
+    // Load subtasks recursively
     const tasksWithSubtasks = await Promise.all(
       tasks.map(task => loadTaskWithSubtasks(task))
     );
 
-    res.json(tasksWithSubtasks);
+    // Return paginated response
+    res.json({
+      tasks: tasksWithSubtasks,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalCount,
+        pageSize: limit
+      }
+    });
   } catch (error) {
     next(error);
   }
