@@ -25,7 +25,9 @@ WORKDIR /app
 # Copy standalone build
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
+
+# Create empty public directory (Next.js may expect it to exist)
+RUN mkdir -p ./public
 
 # Expose port
 EXPOSE 3000
