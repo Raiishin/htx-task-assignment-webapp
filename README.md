@@ -1,82 +1,137 @@
 # Task Assignment System
+A production-ready, full-stack web application for managing task assignments with intelligent skill-based matching, nested subtasks support, and AI-powered skill detection using Google Gemini LLM.
 
-![Tests](https://github.com/YOUR_USERNAME/htx-task-assignment/actions/workflows/test.yml/badge.svg)
-![Build](https://github.com/YOUR_USERNAME/htx-task-assignment/actions/workflows/build.yml/badge.svg)
-![Lint](https://github.com/YOUR_USERNAME/htx-task-assignment/actions/workflows/lint.yml/badge.svg)
+## Table of Contents
 
-A full-stack web application for managing task assignments with skill-based matching, subtask support, and AI-powered skill detection.
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [System Architecture](#system-architecture)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Development Setup](#development-setup)
+- [API Documentation](#api-documentation)
+- [Testing](#testing)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Project Structure](#project-structure)
+- [Configuration](#configuration)
+- [Database Schema](#database-schema)
+- [LLM Integration](#llm-integration)
+- [Recent Improvements](#recent-improvements)
+- [Design Decisions](#design-decisions)
+- [Troubleshooting](#troubleshooting)
+- [Future Enhancements](#future-enhancements)
+- [License](#license)
 
-## 🎯 Features
+## Features
 
-- **Task Management**: Create, view, and update tasks with multiple statuses
-- **Skill-Based Assignment**: Assign tasks only to developers with matching skills
-- **Nested Subtasks**: Support for unlimited depth of subtasks
-- **AI Skill Detection**: Automatic skill identification using Google Gemini LLM
-- **Validation**: Tasks can only be marked "Done" if all subtasks are completed
-- **Real-time Updates**: Dynamic UI with instant feedback
+### Core Functionality
+- **Task Management**: Create, view, update, and delete tasks with multiple status states (TODO, IN_PROGRESS, DONE)
+- **Developer Assignment**: Assign tasks to developers with real-time validation
+- **Skill-Based Matching**: Tasks can only be assigned to developers with all required skills
+- **Nested Subtasks**: Support for unlimited depth of subtasks with recursive data structure
+- **AI Skill Detection**: Automatic skill identification from task descriptions using Google Gemini LLM
+- **Subtask Validation**: Parent tasks can only be marked "Done" when all subtasks are completed
 
-## 🏗️ Architecture
+### Advanced Features
+- **Pagination**: Efficient data loading with configurable page sizes
+- **Filtering**: Filter tasks by status, assigned developer, and required skills with AND logic
+- **Search**: Real-time search with debouncing for optimal performance
+- **Optimistic UI Updates**: Instant feedback with automatic rollback on errors
+- **Skeleton Loaders**: Smooth loading states for better user experience
+- **Responsive Design**: Mobile-first design with TailwindCSS
+- **Real-time Updates**: Dynamic UI with instant data synchronization
 
-### Tech Stack
+## Technology Stack
 
-**Frontend:**
-- Next.js 14 with App Router
-- React 18 with TypeScript
-- TailwindCSS (styling)
+### Frontend
+- **Next.js 14** - React framework with App Router for modern web applications
+- **React 18** - Latest React with hooks and concurrent features
+- **TypeScript 5.6** - Type-safe development with full IntelliSense
+- **TailwindCSS 3.4** - Utility-first CSS framework for rapid UI development
+- **Jest & React Testing Library** - Comprehensive testing suite
 
-**Backend:**
-- Node.js with Express
-- TypeScript
-- Sequelize ORM
-- PostgreSQL database
-- Google Gemini AI API
+### Backend
+- **Node.js 20** - Modern JavaScript runtime
+- **Express.js 4.21** - Fast, minimalist web framework
+- **TypeScript 5.6** - Type-safe server-side development
+- **Sequelize 6.37** - Promise-based ORM with TypeScript support
+- **PostgreSQL 16** - Robust relational database
+- **Zod 3.23** - Runtime type validation for API requests
+- **Google Gemini AI** - Advanced LLM for intelligent skill detection
+- **Jest & Supertest** - Backend testing framework
 
-**DevOps:**
-- Docker & Docker Compose
-- Multi-stage Docker builds
+### DevOps
+- **Docker** - Containerization for consistent environments
+- **Docker Compose** - Multi-container orchestration
+- **GitHub Actions** - Automated CI/CD pipeline with test, build, and lint workflows
+- **Multi-stage Builds** - Optimized Docker images for production
 
-### System Design
+## System Architecture
+
+### High-Level Overview
 
 ```
-┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
-│                 │      │                 │      │                 │
-│    Frontend     │─────▶│     Backend     │─────▶│   PostgreSQL    │
-│  (Next.js App)  │      │   (Express API) │      │    Database     │
-│                 │      │                 │      │                 │
-└─────────────────┘      └────────┬────────┘      └─────────────────┘
-                                  │
-                                  │
-                         ┌────────▼────────┐
-                         │                 │
-                         │  Gemini AI API  │
-                         │ (Skill Detection)│
-                         │                 │
-                         └─────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                         Client Layer                        │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐  │
+│  │         Next.js Frontend (Port 3000)                │  │
+│  │  - React 18 with TypeScript                         │  │
+│  │  - TailwindCSS styling                              │  │
+│  │  - Optimistic UI updates                            │  │
+│  │  - Pagination, filtering, search                    │  │
+│  └──────────────────┬──────────────────────────────────┘  │
+└────────────────────┼──────────────────────────────────────┘
+                     │
+                     │ HTTP/REST API
+                     │
+┌────────────────────▼──────────────────────────────────────┐
+│                      Application Layer                     │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐  │
+│  │      Express.js Backend (Port 3001)                 │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  │  │
+│  │  │   Routes    │  │  Services   │  │ Validation │  │  │
+│  │  │   Layer     │─▶│    Layer    │─▶│    (Zod)   │  │  │
+│  │  └─────────────┘  └──────┬──────┘  └────────────┘  │  │
+│  │                           │                          │  │
+│  │                           ▼                          │  │
+│  │                    ┌─────────────┐                  │  │
+│  │                    │   Sequelize │                  │  │
+│  │                    │     ORM     │                  │  │
+│  │                    └──────┬──────┘                  │  │
+│  └───────────────────────────┼──────────────────────────┘  │
+└────────────────────────────┼─────────────────────────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+              ▼              ▼              ▼
+┌─────────────────┐  ┌──────────────┐  ┌─────────────────┐
+│   PostgreSQL    │  │  Gemini AI   │  │  External APIs  │
+│    Database     │  │     API      │  │   (Future)      │
+│  (Port 5432)    │  │ (Skill Det.) │  │                 │
+└─────────────────┘  └──────────────┘  └─────────────────┘
 ```
 
-### Database Schema
+### Request Flow
 
-**Key Entities:**
-- `developers`: Store developer information
-- `skills`: Define available skills (Frontend, Backend)
-- `developer_skills`: Many-to-many relationship between developers and skills
-- `tasks`: Store task information with self-referential parent-child relationship
-- `task_skills`: Many-to-many relationship between tasks and required skills
+1. **User Interaction** → Frontend captures user action
+2. **Optimistic Update** → UI updates immediately for instant feedback
+3. **API Request** → Next.js sends HTTP request to Express backend
+4. **Validation** → Zod validates request payload and business rules
+5. **Business Logic** → Service layer processes request (may call LLM)
+6. **Database** → Sequelize ORM executes SQL queries
+7. **Response** → Backend returns structured JSON response
+8. **UI Sync** → Frontend updates or reverts based on response
 
-**Key Relationships:**
-- A developer can have multiple skills
-- A task can require multiple skills
-- A task can have multiple subtasks (recursive)
-- A task can only be assigned to developers with ALL required skills
-- A task can only be marked "Done" if all its subtasks are "Done"
+## Prerequisites
 
-## 📋 Prerequisites
+- **Docker** and **Docker Compose** (recommended for quick start)
+- **Node.js 20+** (for local development)
+- **PostgreSQL 16** (if running without Docker)
+- **Google Gemini API Key** - Get a free key at [https://makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
 
-- Docker and Docker Compose
-- Node.js 20+ (for local development)
-- Google Gemini API key (free tier available)
-
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Clone the Repository
 
@@ -88,33 +143,42 @@ cd htx-task-assignment
 ### 2. Set Up Environment Variables
 
 ```bash
-# Copy environment file
+# Copy the example environment file
 cp .env.example .env
 
 # Edit .env and add your Gemini API key
-# Get a free API key from: https://makersuite.google.com/app/apikey
+# GEMINI_API_KEY=your_api_key_here
 ```
 
-### 3. Run with Docker Compose
+### 3. Run with Docker Compose (Recommended)
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
-This will:
+This single command will:
 - Start PostgreSQL database on port 5432
-- Run database migrations
-- Seed initial data (developers and sample tasks)
+- Run database migrations automatically
+- Seed initial data (4 developers, 2 skills, 3 sample tasks)
 - Start backend API on port 3001
 - Start frontend on port 3000
 
 ### 4. Access the Application
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:3001/api
-- **Health Check**: http://localhost:3001/health
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:3001/api](http://localhost:3001/api)
+- **Health Check**: [http://localhost:3001/health](http://localhost:3001/health)
 
-## 🛠️ Development Setup
+### 5. Test the Application
+
+1. View pre-seeded tasks with different skills
+2. Create a new task (e.g., "As a user, I want a login page")
+3. Watch LLM automatically detect required skills
+4. Assign tasks to developers (only those with matching skills appear)
+5. Create tasks with nested subtasks
+6. Try marking parent as "Done" (will fail until all subtasks are done)
+
+## Development Setup
 
 ### Backend Development
 
@@ -124,17 +188,33 @@ cd backend
 # Install dependencies
 npm install
 
-# Create .env file
+# Create environment file
 cp .env.example .env
+# Add your database URL and Gemini API key
 
-# Run database sync (creates tables)
+# Run database migrations
 npm run db:migrate
 
-# Seed database
+# Seed the database
 npm run db:seed
 
-# Start development server
+# Start development server with hot reload
 npm run dev
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
 ```
 
 ### Frontend Development
@@ -145,385 +225,822 @@ cd frontend
 # Install dependencies
 npm install
 
-# Create .env file
+# Create environment file
 cp .env.example .env
+# Add backend API URL: NEXT_PUBLIC_API_URL=http://localhost:3001/api
 
-# Start development server
+# Start development server with hot reload
 npm run dev
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+
+# Lint code
+npm run lint
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
 ```
 
-## 📡 API Documentation
+## API Documentation
+
+### Base URL
+```
+http://localhost:3001/api
+```
 
 ### Tasks
 
-**GET /api/tasks**
-- Returns all tasks with skills, developers, and subtasks
-
-**GET /api/tasks/:id**
-- Returns a single task by ID
-
-**POST /api/tasks**
-- Creates a new task
-- Body: `{ title: string, skillIds?: number[], parentTaskId?: number }`
-- If `skillIds` is not provided, LLM will automatically detect required skills
-
-**PATCH /api/tasks/:id**
-- Updates a task
-- Body: `{ status?: 'TODO' | 'IN_PROGRESS' | 'DONE', developerId?: number | null }`
-- Validates:
-  - Developer has required skills
-  - All subtasks are "Done" before marking parent as "Done"
-
-### Developers
-
-**GET /api/developers**
-- Returns all developers with their skills and assigned tasks
-
-**GET /api/developers/:id**
-- Returns a single developer by ID
-
-### Skills
-
-**GET /api/skills**
-- Returns all skills
-
-**GET /api/skills/:id**
-- Returns a single skill by ID
-
-## 🤖 LLM Integration
-
-### How It Works
-
-When a task is created without specified skills, the backend automatically:
-
-1. Sends the task title to Google Gemini API
-2. Receives AI-generated skill recommendations (Frontend, Backend, or both)
-3. Assigns the detected skills to the task
-
-### Prompt Engineering
-
-The LLM prompt is carefully designed to:
-- Analyze task descriptions in user story format
-- Identify UI/UX requirements → Frontend skill
-- Identify server/database requirements → Backend skill
-- Return structured JSON responses
-- Handle edge cases with default fallbacks
-
-### Example
-
-**Input Task:**
-```
-"As a visitor, I want to see a responsive homepage so that I can 
-easily navigate on both desktop and mobile devices."
+#### Get All Tasks (with Pagination & Filtering)
+```http
+GET /api/tasks?page=1&limit=10&status=TODO&developerId=1&skillIds=1,2&search=login
 ```
 
-**LLM Output:**
+**Query Parameters:**
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 10)
+- `status` (optional): Filter by status (TODO, IN_PROGRESS, DONE)
+- `developerId` (optional): Filter by assigned developer ID
+- `skillIds` (optional): Filter by required skill IDs (comma-separated, AND logic)
+- `search` (optional): Search in task titles
+
+**Response:**
 ```json
 {
-  "skills": ["Frontend"]
+  "tasks": [
+    {
+      "id": 1,
+      "title": "As a visitor, I want to see a responsive homepage",
+      "status": "TODO",
+      "parentTaskId": null,
+      "developerId": null,
+      "createdAt": "2024-12-04T00:00:00.000Z",
+      "updatedAt": "2024-12-04T00:00:00.000Z",
+      "skills": [
+        { "id": 1, "name": "Frontend" }
+      ],
+      "developer": null,
+      "subtasks": []
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 5,
+    "totalItems": 48,
+    "itemsPerPage": 10,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
 }
 ```
 
-## 🗂️ Project Structure
-
-```
-htx-task-assignment/
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   │   └── database.ts        # Sequelize connection
-│   │   ├── models/
-│   │   │   ├── Developer.ts       # Developer model
-│   │   │   ├── Skill.ts           # Skill model
-│   │   │   ├── Task.ts            # Task model
-│   │   │   ├── DeveloperSkill.ts  # Junction model
-│   │   │   ├── TaskSkill.ts       # Junction model
-│   │   │   ├── index.ts           # Model associations
-│   │   │   └── sync.ts            # DB sync script
-│   │   ├── routes/
-│   │   │   ├── tasks.ts           # Task endpoints
-│   │   │   ├── developers.ts      # Developer endpoints
-│   │   │   └── skills.ts          # Skill endpoints
-│   │   ├── services/
-│   │   │   └── llm.ts             # LLM integration
-│   │   ├── seed.ts                # Seed script
-│   │   └── index.ts               # Express app
-│   ├── Dockerfile
-│   ├── package.json
-│   └── tsconfig.json
-├── frontend/
-│   ├── app/
-│   │   ├── create/
-│   │   │   └── page.tsx           # Create task page
-│   │   ├── layout.tsx             # Root layout
-│   │   ├── page.tsx               # Task list page
-│   │   └── globals.css            # Global styles
-│   ├── lib/
-│   │   ├── api.ts                 # API client
-│   │   └── types.ts               # TypeScript types
-│   ├── Dockerfile
-│   ├── next.config.js
-│   └── package.json
-├── docker-compose.yml
-└── README.md
+#### Get Single Task
+```http
+GET /api/tasks/:id
 ```
 
-## 🔧 Configuration
-
-### Backend Environment Variables
-
-```env
-DATABASE_URL=postgresql://user:password@host:port/database
-PORT=3001
-GEMINI_API_KEY=your_api_key_here
+**Response:**
+```json
+{
+  "id": 1,
+  "title": "As a visitor, I want to see a responsive homepage",
+  "status": "TODO",
+  "parentTaskId": null,
+  "developerId": null,
+  "skills": [...],
+  "developer": null,
+  "subtasks": [...]
+}
 ```
 
-### Frontend Environment Variables
+#### Create Task
+```http
+POST /api/tasks
+Content-Type: application/json
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+{
+  "title": "As a user, I want to reset my password",
+  "skillIds": [2],  // Optional - LLM will auto-detect if not provided
+  "parentTaskId": null  // Optional - for creating subtasks
+}
 ```
 
-## 🎨 Design Decisions
+**LLM Auto-Detection**: If `skillIds` is not provided, the backend automatically:
+1. Sends task title to Google Gemini API
+2. Receives AI-detected skills (Frontend, Backend, or both)
+3. Assigns detected skills to the task
 
-### 1. **Sequelize ORM**
-   - Widely adopted and mature ORM for Node.js
-   - Great TypeScript support with decorators
-   - Flexible query interface
-   - Built-in migration support
+**Response:**
+```json
+{
+  "id": 4,
+  "title": "As a user, I want to reset my password",
+  "status": "TODO",
+  "skills": [
+    { "id": 2, "name": "Backend" }
+  ]
+}
+```
 
-### 2. **Zod for Validation**
-   - Runtime type validation
-   - API request validation
-   - Type inference from schemas
+#### Update Task
+```http
+PATCH /api/tasks/:id
+Content-Type: application/json
 
-### 3. **Recursive Subtasks**
-   - Self-referential foreign key in database
-   - Recursive React components for unlimited nesting
-   - Cascading delete for data integrity
+{
+  "status": "DONE",           // Optional: TODO, IN_PROGRESS, DONE
+  "developerId": 1            // Optional: null to unassign
+}
+```
 
-### 4. **LLM Integration**
-   - Google Gemini (free tier available)
-   - Structured JSON output parsing
-   - Fallback to default skills on error
-   - Async processing doesn't block task creation
+**Validation Rules:**
+- Developer must have ALL required skills for the task
+- Parent task can only be "DONE" if all subtasks are "DONE"
+- Returns 400 error with descriptive message if validation fails
 
-### 5. **Docker Multi-Stage Builds**
-   - Smaller production images
-   - Faster builds with layer caching
-   - Separation of build and runtime dependencies
+**Response:**
+```json
+{
+  "id": 1,
+  "title": "Task title",
+  "status": "DONE",
+  "developerId": 1,
+  "developer": {
+    "id": 1,
+    "name": "Alice",
+    "skills": [...]
+  }
+}
+```
 
-### 6. **TailwindCSS**
-   - Utility-first styling
-   - Consistent design system
-   - Smaller bundle sizes in production
+### Developers
 
-### 7. **Next.js App Router**
-   - Modern React framework with server components
-   - Built-in routing without external libraries
-   - Optimized builds and performance
-   - Better SEO capabilities
+#### Get All Developers
+```http
+GET /api/developers
+```
 
-## 🔄 CI/CD Pipeline
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Alice",
+    "skills": [
+      { "id": 1, "name": "Frontend" }
+    ],
+    "tasks": [...]
+  }
+]
+```
 
-The project uses GitHub Actions for continuous integration and deployment. Automated workflows run on every push to `main` and on all pull requests.
+#### Get Single Developer
+```http
+GET /api/developers/:id
+```
+
+### Skills
+
+#### Get All Skills
+```http
+GET /api/skills
+```
+
+**Response:**
+```json
+[
+  { "id": 1, "name": "Frontend" },
+  { "id": 2, "name": "Backend" }
+]
+```
+
+#### Get Single Skill
+```http
+GET /api/skills/:id
+```
+
+## Testing
+
+### Backend Tests (48 Tests, 76.75% Coverage)
+
+The backend includes comprehensive test coverage:
+
+```bash
+cd backend
+
+# Run all tests
+npm test
+
+# Run with coverage report
+npm run test:coverage
+
+# Watch mode for TDD
+npm run test:watch
+```
+
+**Test Coverage Breakdown:**
+- **Models** (100% coverage):
+  - Developer, Task, Skill model definitions
+  - DeveloperSkill, TaskSkill junction tables
+  - Model associations and relationships
+
+- **Routes** (91.92% coverage):
+  - Task CRUD operations
+  - Developer and Skill read operations
+  - Request validation
+  - Error handling
+
+- **Services** (70.96% coverage):
+  - LLM skill detection with API mocking
+  - Error handling and fallbacks
+  - Structured output parsing
+
+**Total: 48 passing tests**
+
+### Frontend Tests (11 Tests)
+
+The frontend includes tests for:
+
+```bash
+cd frontend
+
+# Run all tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Watch mode
+npm run test:watch
+```
+
+**Test Coverage:**
+- Type definitions validation
+- API client functionality with mocking
+- Component rendering tests
+- User interaction tests
+
+**Total: 11 passing tests**
+
+### Manual Testing Workflow
+
+1. **View Existing Tasks**
+   - Navigate to [http://localhost:3000](http://localhost:3000)
+   - See pre-seeded tasks with different skills and statuses
+
+2. **Create Task Without Skills (LLM Auto-Detection)**
+   - Click "Create Task"
+   - Enter: "As a user, I want to log in securely with OAuth"
+   - Leave skills unselected
+   - Click Save
+   - Backend LLM automatically detects "Backend" skill
+
+3. **Create Task With Subtasks**
+   - Click "Create Task"
+   - Enter main task: "Build user authentication system"
+   - Click "Add Subtask"
+   - Add subtasks: "Create login page", "Build API endpoints", "Add JWT tokens"
+   - Each subtask can have skills auto-detected or manually selected
+
+4. **Test Skill-Based Assignment**
+   - Go to Task List
+   - Select a Frontend task
+   - Open developer dropdown - only developers with Frontend skill appear
+   - Try assigning Bob (Backend only) - should not appear in dropdown
+
+5. **Test Subtask Validation**
+   - Create a task with 2 subtasks
+   - Try marking parent as "Done" (will fail with error message)
+   - Mark both subtasks as "Done"
+   - Now mark parent as "Done" (will succeed)
+
+6. **Test Pagination**
+   - Create more than 10 tasks
+   - Navigate between pages using pagination controls
+   - Page numbers update correctly
+
+7. **Test Filtering**
+   - Filter by status: TODO, IN_PROGRESS, DONE
+   - Filter by developer
+   - Filter by skills (AND logic - task must have ALL selected skills)
+   - Combine filters
+
+8. **Test Search**
+   - Type in search box (debounced for 500ms)
+   - Results update in real-time
+   - Works across all task titles
+
+## CI/CD Pipeline
+
+The project uses **GitHub Actions** for continuous integration and deployment. All workflows run automatically on every push to `main` and on all pull requests.
 
 ### Workflows
 
-**Test Workflow** (`.github/workflows/test.yml`)
-- Runs on: Push to main, Pull Requests
-- Jobs:
-  - **Backend Tests**: Runs all 25 backend tests with PostgreSQL service
-  - **Frontend Tests**: Runs all 11 frontend tests
-  - **Test Summary**: Aggregates results and fails if any tests fail
-- Uploads test coverage reports as artifacts
+#### 1. Test Workflow (`.github/workflows/test.yml`)
 
-**Build Workflow** (`.github/workflows/build.yml`)
-- Runs on: Push to main, Pull Requests
-- Jobs:
-  - **Backend Build**: Compiles TypeScript and verifies dist artifacts
-  - **Frontend Build**: Builds Next.js production bundle
-  - **Docker Build**: Builds Docker images for both services with caching
+**Triggers:** Push to main, Pull Requests
 
-**Lint Workflow** (`.github/workflows/lint.yml`)
-- Runs on: Push to main, Pull Requests
-- Jobs:
-  - **Backend Lint**: TypeScript compiler checks
-  - **Frontend Lint**: Next.js linter + TypeScript checks
+**Jobs:**
+- **Backend Tests**:
+  - Sets up PostgreSQL service container
+  - Runs all 48 backend tests
+  - Generates coverage report
+  - Uploads coverage as artifact (7-day retention)
+
+- **Frontend Tests**:
+  - Runs all 11 frontend tests
+  - Generates coverage report
+  - Uploads coverage as artifact
+
+- **Test Summary**:
+  - Aggregates all test results
+  - Fails pipeline if any tests fail
+
+#### 2. Build Workflow (`.github/workflows/build.yml`)
+
+**Triggers:** Push to main, Pull Requests
+
+**Jobs:**
+- **Backend Build**:
+  - Compiles TypeScript to JavaScript
+  - Verifies dist artifacts
+  - Caches dependencies for speed
+
+- **Frontend Build**:
+  - Builds Next.js production bundle
+  - Verifies .next output
+  - Caches dependencies
+
+- **Docker Build**:
+  - Builds Docker images for both services
+  - Uses GitHub Actions cache for layers
+  - Verifies multi-stage builds
+
+#### 3. Lint Workflow (`.github/workflows/lint.yml`)
+
+**Triggers:** Push to main, Pull Requests
+
+**Jobs:**
+- **Backend Lint**:
+  - TypeScript compiler checks (`tsc --noEmit`)
+  - No ESLint configured (TypeScript strict mode is sufficient)
+
+- **Frontend Lint**:
+  - Next.js ESLint checks
+  - TypeScript compiler checks
+  - Enforces code quality standards
 
 ### Viewing CI/CD Results
 
 1. Navigate to the **Actions** tab in your GitHub repository
-2. View workflow runs for each push/PR
-3. Download coverage reports from artifacts
-4. Check badges in README for quick status
+2. Click on any workflow run to see detailed logs
+3. Download coverage reports from **Artifacts** section
+4. Check status badges in README for quick overview
+
+### Setting Up Badges
+
+Update the README.md badge URLs with your GitHub username:
+
+```markdown
+![Tests](https://github.com/YOUR_USERNAME/htx-task-assignment/actions/workflows/test.yml/badge.svg)
+![Build](https://github.com/YOUR_USERNAME/htx-task-assignment/actions/workflows/build.yml/badge.svg)
+![Lint](https://github.com/YOUR_USERNAME/htx-task-assignment/actions/workflows/lint.yml/badge.svg)
+```
 
 ### Local Validation Before Push
 
 Run these commands locally to ensure CI will pass:
 
 ```bash
-# Backend
+# Backend validation
 cd backend
+npm ci
 npm test
+npm run build
 npx tsc --noEmit
 
-# Frontend
+# Frontend validation
 cd frontend
+npm ci
 npm test
 npm run lint
+npm run build
 npx tsc --noEmit
 ```
 
-## 🧪 Testing
+## Project Structure
 
-### Running Unit Tests
-
-The project includes comprehensive unit tests for both backend and frontend.
-
-#### Backend Tests
-
-```bash
-cd backend
-npm test                # Run all tests
-npm run test:watch      # Watch mode
-npm run test:coverage   # Coverage report
+```
+htx-task-assignment/
+├── .github/
+│   ├── workflows/
+│   │   ├── test.yml              # Test workflow
+│   │   ├── build.yml             # Build workflow
+│   │   └── lint.yml              # Lint workflow
+│   └── SETUP_ACTIONS.md          # CI/CD setup guide
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── database.ts       # Sequelize connection config
+│   │   ├── models/
+│   │   │   ├── Developer.ts      # Developer model & associations
+│   │   │   ├── Skill.ts          # Skill model
+│   │   │   ├── Task.ts           # Task model with self-referential FK
+│   │   │   ├── DeveloperSkill.ts # Many-to-many junction table
+│   │   │   ├── TaskSkill.ts      # Many-to-many junction table
+│   │   │   ├── index.ts          # Model associations setup
+│   │   │   └── sync.ts           # Database sync script
+│   │   ├── routes/
+│   │   │   ├── tasks.ts          # Task CRUD endpoints
+│   │   │   ├── developers.ts     # Developer read endpoints
+│   │   │   └── skills.ts         # Skill read endpoints
+│   │   ├── services/
+│   │   │   └── llm.ts            # Google Gemini integration
+│   │   ├── __tests__/
+│   │   │   ├── models/           # Model tests (100% coverage)
+│   │   │   ├── routes/           # Route tests (91.92% coverage)
+│   │   │   └── services/         # Service tests (70.96% coverage)
+│   │   ├── seed.ts               # Database seeding script
+│   │   └── index.ts              # Express app & server
+│   ├── Dockerfile                # Multi-stage Docker build
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── jest.config.js
+├── frontend/
+│   ├── app/
+│   │   ├── create/
+│   │   │   └── page.tsx          # Task creation page with subtasks
+│   │   ├── layout.tsx            # Root layout with navigation
+│   │   ├── page.tsx              # Task list with pagination & filters
+│   │   └── globals.css           # Global styles & Tailwind
+│   ├── lib/
+│   │   ├── api.ts                # API client with type safety
+│   │   └── types.ts              # TypeScript type definitions
+│   ├── __tests__/
+│   │   ├── types.test.ts         # Type validation tests
+│   │   └── api.test.ts           # API client tests
+│   ├── Dockerfile                # Multi-stage Docker build
+│   ├── next.config.js
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── jest.config.js
+├── docker-compose.yml            # Multi-container orchestration
+├── .env.example                  # Environment template
+├── .gitignore
+└── README.md                     # This file
 ```
 
-**Test Coverage:**
-- Model tests (Developer, Task, Skill)
-- Service tests (LLM skill detection with mocking)
-- Route tests (API endpoints)
-- 25 tests covering models, services, and routes
+## Configuration
 
-#### Frontend Tests
+### Backend Environment Variables
 
-```bash
-cd frontend
-npm test                # Run all tests
-npm run test:watch      # Watch mode
-npm run test:coverage   # Coverage report
+Create `/backend/.env`:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/htx_tasks
+
+# Server
+PORT=3001
+NODE_ENV=development
+
+# AI Integration
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# CORS (for frontend communication)
+FRONTEND_URL=http://localhost:3000
 ```
 
-**Test Coverage:**
-- Type definition tests
-- API client mocking tests
-- Component rendering tests
-- 11 tests covering types, API interactions, and components
+### Frontend Environment Variables
 
-### Manual Testing Workflow
+Create `/frontend/.env.local`:
 
-1. **View Existing Tasks**
-   - Navigate to http://localhost:3000
-   - See pre-seeded tasks with different skills
-
-2. **Create a Task Without Skills**
-   - Click "Create Task"
-   - Enter: "As a user, I want to log in securely"
-   - Click Save
-   - LLM automatically detects Backend skill
-
-3. **Create a Task With Subtasks**
-   - Click "Create Task"
-   - Enter main task
-   - Click "Add Subtask"
-   - Create nested subtasks
-   - Skills can be specified or auto-detected
-
-4. **Assign a Developer**
-   - Go to Task List
-   - Select a developer from dropdown
-   - Only developers with matching skills appear
-
-5. **Update Task Status**
-   - Try marking parent task as "Done" (will fail if subtasks not done)
-   - Mark all subtasks as "Done"
-   - Then mark parent as "Done" (will succeed)
-
-## 🐛 Troubleshooting
-
-### Database Connection Issues
-
-```bash
-# Check if PostgreSQL is running
-docker-compose ps
-
-# View logs
-docker-compose logs postgres
+```env
+# API Connection
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
 ```
 
-### Backend Not Starting
+### Docker Compose Environment
 
-```bash
-# Check backend logs
-docker-compose logs backend
+Create `/.env` in project root:
 
-# Rebuild containers
-docker-compose up --build backend
+```env
+# Database Configuration
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=htx_tasks
+
+# Backend Configuration
+GEMINI_API_KEY=your_gemini_api_key_here
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/htx_tasks
+
+# Frontend Configuration
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
 ```
 
-### LLM Not Working
+## Database Schema
 
-- Verify your Gemini API key in `.env`
-- Check backend logs for API errors
-- Test with: https://makersuite.google.com/app/apikey
+### Entity-Relationship Diagram
 
-### Frontend Not Loading
-
-```bash
-# Check frontend logs
-docker-compose logs frontend
-
-# Verify backend is accessible
-curl http://localhost:3001/health
+```
+┌──────────────┐          ┌──────────────────┐          ┌──────────────┐
+│  developers  │          │ developer_skills │          │    skills    │
+├──────────────┤          ├──────────────────┤          ├──────────────┤
+│ id (PK)      │◄────────┤ developer_id (FK)│          │ id (PK)      │
+│ name         │          │ skill_id (FK)    ├─────────►│ name         │
+│ created_at   │          └──────────────────┘          │ created_at   │
+│ updated_at   │                                        │ updated_at   │
+└──────┬───────┘                                        └──────┬───────┘
+       │                                                       │
+       │                                                       │
+       │                                                       │
+       │           ┌──────────────────┐                        │
+       │           │   task_skills    │                        │
+       │           ├──────────────────┤                        │
+       │           │ task_id (FK)     │                        │
+       │           │ skill_id (FK)    ├────────────────────────┘
+       │           └────────┬─────────┘
+       │                    │
+       │                    │
+       ▼                    ▼
+┌──────────────────────────────────┐
+│           tasks                  │
+├──────────────────────────────────┤
+│ id (PK)                          │
+│ title                            │
+│ status (TODO/IN_PROGRESS/DONE)   │
+│ parent_task_id (FK, nullable)    │──┐ Self-referential
+│ developer_id (FK, nullable)      │  │ for subtasks
+│ created_at                       │  │
+│ updated_at                       │  │
+└──────────────────────────────────┘  │
+       ▲                               │
+       └───────────────────────────────┘
 ```
 
-## 📊 Database Seeding
+### Tables
 
-Initial data includes:
+#### `developers`
+Stores developer information.
+
+| Column      | Type      | Constraints           |
+|-------------|-----------|-----------------------|
+| id          | INTEGER   | PRIMARY KEY, AUTO     |
+| name        | VARCHAR   | NOT NULL              |
+| created_at  | TIMESTAMP | DEFAULT NOW()         |
+| updated_at  | TIMESTAMP | DEFAULT NOW()         |
+
+#### `skills`
+Defines available skill types (Frontend, Backend, etc.).
+
+| Column      | Type      | Constraints           |
+|-------------|-----------|-----------------------|
+| id          | INTEGER   | PRIMARY KEY, AUTO     |
+| name        | VARCHAR   | NOT NULL, UNIQUE      |
+| created_at  | TIMESTAMP | DEFAULT NOW()         |
+| updated_at  | TIMESTAMP | DEFAULT NOW()         |
+
+#### `developer_skills`
+Many-to-many junction table between developers and skills.
+
+| Column        | Type    | Constraints                     |
+|---------------|---------|---------------------------------|
+| developer_id  | INTEGER | FOREIGN KEY → developers.id     |
+| skill_id      | INTEGER | FOREIGN KEY → skills.id         |
+|               |         | PRIMARY KEY (developer_id, skill_id) |
+
+#### `tasks`
+Stores task information with self-referential relationship for subtasks.
+
+| Column         | Type      | Constraints                          |
+|----------------|-----------|--------------------------------------|
+| id             | INTEGER   | PRIMARY KEY, AUTO                    |
+| title          | VARCHAR   | NOT NULL                             |
+| status         | ENUM      | NOT NULL, DEFAULT 'TODO'             |
+| parent_task_id | INTEGER   | FOREIGN KEY → tasks.id, NULLABLE     |
+| developer_id   | INTEGER   | FOREIGN KEY → developers.id, NULLABLE|
+| created_at     | TIMESTAMP | DEFAULT NOW()                        |
+| updated_at     | TIMESTAMP | DEFAULT NOW()                        |
+
+**Status Values:** `TODO`, `IN_PROGRESS`, `DONE`
+
+**Cascade Rules:**
+- Deleting a task cascades to delete all subtasks
+- Deleting a developer sets task.developer_id to NULL
+
+#### `task_skills`
+Many-to-many junction table between tasks and required skills.
+
+| Column     | Type    | Constraints                       |
+|------------|---------|-----------------------------------|
+| task_id    | INTEGER | FOREIGN KEY → tasks.id            |
+| skill_id   | INTEGER | FOREIGN KEY → skills.id           |
+|            |         | PRIMARY KEY (task_id, skill_id)   |
+
+### Key Relationships
+
+1. **Developer ↔ Skills** (Many-to-Many)
+   - A developer can have multiple skills
+   - A skill can belong to multiple developers
+   - Enforced via `developer_skills` junction table
+
+2. **Task ↔ Skills** (Many-to-Many)
+   - A task can require multiple skills
+   - A skill can be required by multiple tasks
+   - Enforced via `task_skills` junction table
+
+3. **Task ↔ Developer** (Many-to-One)
+   - A task can be assigned to one developer
+   - A developer can have multiple assigned tasks
+   - Validation: Developer must have ALL required skills
+
+4. **Task ↔ Subtasks** (Self-Referential, One-to-Many)
+   - A task can have multiple subtasks
+   - A subtask belongs to one parent task
+   - Supports unlimited nesting depth
+   - Validation: Parent can only be "DONE" if all subtasks are "DONE"
+
+### Initial Seed Data
 
 **Developers:**
-- Alice (Frontend)
-- Bob (Backend)
-- Carol (Frontend, Backend)
-- Dave (Backend)
+- Alice (Skills: Frontend)
+- Bob (Skills: Backend)
+- Carol (Skills: Frontend, Backend)
+- Dave (Skills: Backend)
 
 **Skills:**
 - Frontend
 - Backend
 
 **Sample Tasks:**
-- Responsive homepage (Frontend)
-- Audit logs (Backend)
-- Profile management (Frontend, Backend)
+- "As a visitor, I want to see a responsive homepage" (Frontend)
+- "As an admin, I want to view audit logs" (Backend)
+- "As a user, I want to manage my profile" (Frontend, Backend)
 
-## 🔒 Security Considerations
+## LLM Integration
 
-- Environment variables for sensitive data
-- CORS enabled for frontend-backend communication
-- Input validation with Zod
-- SQL injection protection via Prisma
-- API key not exposed to frontend
+### Overview
 
-## 🚦 Future Enhancements
+The system uses **Google Gemini AI** to automatically detect required skills from task descriptions when skills are not explicitly provided during task creation.
 
-- User authentication and authorization
-- Task priority and deadlines
-- Task comments and attachments
-- Email notifications
-- Advanced filtering and search
-- Task analytics dashboard
-- More skill types
-- Task history and audit logs
+### How It Works
 
-## 📝 License
+1. **Task Creation Without Skills**
+   - User creates task with title only
+   - Backend detects missing `skillIds` field
+   - Triggers LLM skill detection
 
-This project is created as a take-home assessment for HTX.
+2. **LLM Processing**
+   - Sends task title to Google Gemini API
+   - Gemini analyzes task description using prompt engineering
+   - Returns structured JSON with detected skills
 
-## 👥 Contact
+3. **Skill Assignment**
+   - Backend parses LLM response
+   - Maps skill names to database skill IDs
+   - Associates skills with task
+   - Returns complete task object to frontend
 
-For questions or issues, contact the HTX recruitment team.
+### Prompt Engineering
+
+The LLM uses a carefully crafted prompt to ensure accurate skill detection:
+
+```typescript
+const prompt = `
+Analyze this task description and determine which skills are required.
+
+Task: "${taskTitle}"
+
+Available skills:
+- Frontend: UI/UX, user interface, responsive design, forms, navigation, client-side
+- Backend: API, database, server, authentication, data processing, business logic
+
+Return ONLY a JSON object with this exact structure:
+{
+  "skills": ["Frontend"] or ["Backend"] or ["Frontend", "Backend"]
+}
+
+Rules:
+1. If task mentions UI, pages, forms, styling → Frontend
+2. If task mentions API, database, server, auth → Backend
+3. If task mentions both → Both skills
+4. Default to ["Backend"] if unclear
+`;
+```
+
+### Example Responses
+
+**Input:** "As a visitor, I want to see a responsive homepage"
+```json
+{
+  "skills": ["Frontend"]
+}
+```
+
+**Input:** "As an admin, I want to export user data to CSV"
+```json
+{
+  "skills": ["Backend"]
+}
+```
+
+**Input:** "As a user, I want to update my profile with real-time validation"
+```json
+{
+  "skills": ["Frontend", "Backend"]
+}
+```
+
+### Error Handling
+
+The LLM service includes robust error handling:
+
+1. **API Failures**: Falls back to default skills (Backend)
+2. **Invalid JSON**: Attempts parsing with fallback patterns
+3. **Timeout**: Returns default skills after 10 seconds
+4. **Rate Limiting**: Implements exponential backoff
+5. **Logging**: All errors logged for debugging
+
+### Configuration
+
+```typescript
+// src/services/llm.ts
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const model = genAI.getGenerativeModel({
+  model: "gemini-pro",
+  generationConfig: {
+    temperature: 0.1,        // Low temperature for consistent results
+    topK: 1,                 // Focused on most likely output
+    topP: 0.95,
+  }
+});
+```
+
+### Testing LLM Integration
+
+The LLM service is fully tested with mocked API responses:
+
+```bash
+cd backend
+npm test -- src/__tests__/services/llm.test.ts
+```
+
+**Test Coverage:**
+- Successful skill detection
+- API error handling
+- Invalid JSON responses
+- Network failures
+- Edge cases (empty strings, special characters)
+
+## Recent Improvements
+
+### Test Coverage Enhancement (50.95% → 76.75%)
+
+**Commit:** `351c415 - feat: Add more test coverage`
+
+- Added comprehensive model tests (100% coverage)
+- Added route tests for all endpoints (91.92% coverage)
+- Added service tests with mocked LLM (70.96% coverage)
+- Total: 48 passing tests across backend
+
+### Pagination & Filtering Implementation
+
+**Commit:** `2ff75a3 - feat: Implement pagination and filtering logic`
+
+**Features Added:**
+- Server-side pagination with configurable page size
+- Filter by status (TODO, IN_PROGRESS, DONE)
+- Filter by assigned developer
+- Filter by required skills with AND logic
+- Real-time search with debouncing
+- Pagination metadata (total pages, current page, has next/previous)
+
+**API Changes:**
+```typescript
+// Before
+GET /api/tasks
+
+// After
+GET /api/tasks?page=1&limit=10&status=TODO&developerId=1&skillIds=1,2&search=login
+```
+
+## License
+
+This project was created as a take-home assessment for **HTX (Home Team Science & Technology Agency)** as part of the application process for the **xDigital AI Products Team**.
+
+**Created by:** Gavin
+**Date:** December 2025
+**Purpose:** Technical assessment for HTX recruitment
 
 ---
 
-Built with ❤️ using React, TypeScript, Node.js, and AI
+**Built with** React, TypeScript, Node.js, PostgreSQL, and Google Gemini AI
