@@ -57,6 +57,12 @@ Task.init(
       type: DataTypes.ENUM(...Object.values(TaskStatus)),
       allowNull: false,
       defaultValue: TaskStatus.TODO,
+      validate: {
+        isIn: {
+          args: [Object.values(TaskStatus)],
+          msg: 'Status must be one of: TODO, IN_PROGRESS, DONE',
+        },
+      },
     },
     parentTaskId: {
       type: DataTypes.INTEGER,

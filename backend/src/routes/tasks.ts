@@ -120,7 +120,8 @@ router.get('/', async (req, res, next) => {
     const where: any = { parentTaskId: null };
     if (status) where.status = status;
     if (developerId) where.developerId = developerId;
-    if (search) where.title = { [Op.iLike]: `%${search}%` };
+    // Use Op.like for SQLite compatibility (case-insensitive in SQLite by default)
+    if (search) where.title = { [Op.like]: `%${search}%` };
 
     // Handle skill filtering with AND logic using subquery
     if (skillIds?.length) {
