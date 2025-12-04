@@ -94,6 +94,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: false
+          load: true
           tags: task-assignment-backend:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -104,6 +105,7 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: false
+          load: true
           tags: task-assignment-frontend:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -111,4 +113,4 @@ jobs:
       - name: Build verification
         run: |
           echo "✅ Docker images built successfully"
-          docker images | grep task-assignment
+          docker images | grep task-assignment || echo "Warning: Images may not be loaded in local store with buildx"

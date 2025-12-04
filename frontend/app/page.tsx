@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Task, Developer, Skill, PaginationMeta, TaskFilters } from '@/lib/types';
 import { api } from '@/lib/api';
 
@@ -25,11 +25,7 @@ export default function TaskListPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  useEffect(() => {
-    loadData();
-  }, [currentPage, filters, debouncedSearch]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [tasksResponse, developersData, skillsData] = await Promise.all([
@@ -47,7 +43,11 @@ export default function TaskListPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, filters, debouncedSearch]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleStatusChange = async (taskId: number, status: string) => {
     // Optimistic update
